@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string></string>
+	<key>connections</key>
+	<dict>
+		<key>4F6C717C-8940-443B-94ED-41995F993403</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>F8F28D56-6F4C-4804-905A-BEE240B4DDE3</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+			</dict>
+		</array>
+		<key>F8F28D56-6F4C-4804-905A-BEE240B4DDE3</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>29D13E60-8F29-4105-8CBA-F3D5BA8EC187</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>xelz</string>
+	<key>description</key>
+	<string>Quick setup DNS setting</string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Switch DNS</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>63</integer>
+				<key>keyword</key>
+				<string>dns</string>
+				<key>script</key>
+				<string>#!/bin/bash
+
+PARAM="{query}"
+
+if [ $PARAM != "" ]; then
+    echo '&lt;items&gt;&lt;item arg="'$PARAM'" uid="1" valid="yes"&gt;&lt;icon&gt;icon.png&lt;/icon&gt;&lt;subtitle /&gt;&lt;title&gt;切换DNS为  '$PARAM'&lt;/title&gt;&lt;/item&gt;&lt;/items&gt;'
+    exit 0
+fi
+
+echo '&lt;items&gt;'
+echo '&lt;item arg="google" uid="1" valid="yes"&gt;&lt;icon&gt;icon.png&lt;/icon&gt;&lt;subtitle /&gt;&lt;title&gt;切换至 Google DNS&lt;/title&gt;&lt;/item&gt;'
+echo '&lt;item arg="114" uid="2" valid="yes"&gt;&lt;icon&gt;icon.png&lt;/icon&gt;&lt;subtitle /&gt;&lt;title&gt;切换至 114 DNS&lt;/title&gt;&lt;/item&gt;'
+echo '&lt;item arg="v2ex" uid="3" valid="yes"&gt;&lt;icon&gt;icon.png&lt;/icon&gt;&lt;subtitle /&gt;&lt;title&gt;切换至 V2EX DNS&lt;/title&gt;&lt;/item&gt;'
+echo '&lt;item arg="opendns" uid="4" valid="yes"&gt;&lt;icon&gt;icon.png&lt;/icon&gt;&lt;subtitle /&gt;&lt;title&gt;切换至 Open DNS&lt;/title&gt;&lt;/item&gt;'
+echo '&lt;item arg="default" uid="5" valid="yes"&gt;&lt;icon&gt;icon.png&lt;/icon&gt;&lt;subtitle /&gt;&lt;title&gt;切换至 默认 DNS&lt;/title&gt;&lt;/item&gt;'
+echo '&lt;item arg="{query}" uid="100" valid="yes"&gt;&lt;icon&gt;icon.png&lt;/icon&gt;&lt;subtitle /&gt;&lt;title&gt;切换DNS为 …&lt;/title&gt;&lt;/item&gt;'
+echo '&lt;/items&gt;'</string>
+				<key>title</key>
+				<string>快速切换DNS</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>4F6C717C-8940-443B-94ED-41995F993403</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>lastpathcomponent</key>
+				<false/>
+				<key>onlyshowifquerypopulated</key>
+				<true/>
+				<key>output</key>
+				<integer>0</integer>
+				<key>removeextension</key>
+				<false/>
+				<key>sticky</key>
+				<false/>
+				<key>text</key>
+				<string>{query}</string>
+				<key>title</key>
+				<string>Notification</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.notification</string>
+			<key>uid</key>
+			<string>29D13E60-8F29-4105-8CBA-F3D5BA8EC187</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>escaping</key>
+				<integer>63</integer>
+				<key>script</key>
+				<string>DEVICE=$(networksetup -listnetworkserviceorder | awk '
+    BEGIN {
+        "netstat -rn | grep default " | getline var
+        split(var, ARRAY, " ")
+    }
+
+    { if ($5 ~ ARRAY[6]) { NAME=$3 } }
+
+    END { print NAME }
+')
+
+dscacheutil -flushcache
+case "{query}" in
+    "114")
+        networksetup -setdnsservers ${DEVICE%,*} 114.114.114.114 114.114.115.115
+        echo "Using 114 Public DNS on your ${DEVICE%,*} connection."                                                                                                                 
+    ;;
+    "v2ex")
+        networksetup -setdnsservers ${DEVICE%,*} 199.91.73.222 178.79.131.110
+        echo "Using V2EX Public DNS on your ${DEVICE%,*} connection."                                                                                                                 
+    ;;
+    "google")
+        networksetup -setdnsservers ${DEVICE%,*} 8.8.8.8 8.8.4.4
+        echo "Using Google Public DNS on your ${DEVICE%,*} connection."
+    ;;
+    "opendns")
+        networksetup -setdnsservers ${DEVICE%,*} 208.67.222.222 208.67.220.220
+        echo "Using OpenDNS on your ${DEVICE%,*} connection."
+    ;;
+    "default")
+        networksetup -setdnsservers ${DEVICE%,*} empty
+        echo "Using Default DNS on your ${DEVICE%,*} connection."
+    ;;
+    *)
+        result=`networksetup -setdnsservers ${DEVICE%,*} {query}`
+        if [ $? == 0 ]; then
+            echo "Using DNS {query} on your ${DEVICE%,*} connection."
+        else
+            echo "{query} is not a valid dns server."
+        fi
+    ;;
+esac</string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>F8F28D56-6F4C-4804-905A-BEE240B4DDE3</string>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string></string>
+	<key>uidata</key>
+	<dict>
+		<key>29D13E60-8F29-4105-8CBA-F3D5BA8EC187</key>
+		<dict>
+			<key>ypos</key>
+			<real>70</real>
+		</dict>
+		<key>4F6C717C-8940-443B-94ED-41995F993403</key>
+		<dict>
+			<key>ypos</key>
+			<real>70</real>
+		</dict>
+		<key>F8F28D56-6F4C-4804-905A-BEE240B4DDE3</key>
+		<dict>
+			<key>ypos</key>
+			<real>70</real>
+		</dict>
+	</dict>
+	<key>webaddress</key>
+	<string></string>
+</dict>
+</plist>
